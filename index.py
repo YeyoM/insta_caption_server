@@ -1,6 +1,7 @@
 from flask import Flask, request
 from transformers import pipeline
 import base64
+import os
 
 app = Flask(__name__)
 
@@ -24,7 +25,18 @@ def generate_caption():
     with open(path, 'wb') as f:
         f.write(image)
 
-    model = pipeline('image-to-text', model = "model")
+    # We will check if we have downloaded the model to the disk
+    # if not, we will download it
+    if os.path.exists("./model/pytorch_model.bin"):
+        print("Model exists")
+        model = pipeline('image-to-text', model = "./model")
+    else:
+        # Download the model
+        print("Downloading model")
+        model = pipeline('image-to-text', model = "nlpconnect/vit-gpt2-image-captioning")
+        # Save the model to disk
+        model.save_pretrained("/model")
+        
     caption = model(path)
     return caption[0]
 
